@@ -1,41 +1,39 @@
-청소기1 hard -> boys
-청소기2 hard -> boys
-유리창 easy
-유리창 easy
-제빙기 normal
-손걸레 easy
-밀대1 normal
-밀대2 normal
-밀대3 normal
-화분 normal
-공기청정기 easy
-화장실,쓰레기, 음식물1 hard -> girls
-화장실,쓰레기, 음식물2 hard  -> girls
-커피머신,냉장고 normal
+청소기1 hard -> boys    
+청소기2 hard -> boys    
+유리창 easy   
+유리창 easy   
+제빙기 normal  
+손걸레 easy  
+밀대1 normal  
+밀대2 normal  
+밀대3 normal  
+화분 normal  
+공기청정기 easy  
+화장실,쓰레기, 음식물1 hard -> girls   
+화장실,쓰레기, 음식물2 hard  -> girls  
+커피머신,냉장고 normal  
 
-12 ~ 14 역할
+12 ~ 14 역할  
 16 사람 (연차, 출장..)
 
 
-이승연
-최현순
-윤지연
-김진규
-김건우
-최진휘
-정민찬
-조윤지
-정근준
-김예인
-김규민
-김진영
-채민규
-윤보민
-배소정
-손원철
+이승연  
+최현순  
+윤지연  
+김진규  
+김건우  
+최진휘  
+정민찬  
+조윤지  
+정근준  
+김예인  
+김규민  
+김진영  
+채민규  
+윤보민  
+배소정  
+손원철  
 
-
-값에 대한 value를 주고,
 
 ----------------
 셀레니움으로 pms 서버 금주 목요일 연차 명단 확인 !
