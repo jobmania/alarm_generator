@@ -38,6 +38,9 @@ dependencies {
 // https://mvnrepository.com/artifact/org.mongodb/mongodb-driver-sync
 	implementation group: 'org.mongodb', name: 'mongodb-driver-sync', version: '4.11.1'
 
+	// 크롤링을 위한 Selinium 의존성
+	implementation 'org.seleniumhq.selenium:selenium-java'
+
 }
 
 tasks.named('test') {

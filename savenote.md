@@ -50,6 +50,12 @@ https://velog.io/@joyoo1221/%EC%9E%90%EB%B0%94-%EC%85%80%EB%A0%88%EB%8B%88%EC%9B
 
 https://www.selenium.dev/documentation/webdriver/elements/finders/
 
+https://velog.io/@shzero211/%EC%8A%A4%ED%94%84%EB%A7%81%EB%B6%80%ED%8A%B8%EC%97%90%EC%84%9C-%EC%85%80%EB%A6%AC%EB%8B%88%EC%9B%80%EC%82%AC%EC%9A%A9%ED%95%98%EA%B8%B0
+
+
+https://wikidocs.net/91474
+
+
 -----------------
 
 가중치 저장은
