@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Drawing</title>
+</head>
+<body>
+<canvas id="myCanvas" width="400" height="300"></canvas>
+
+<button id="saveBtn">Save</button>
+<script>
+    const canvas = document.getElementById("myCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // 사용자가 그릴 때의 초기 설정
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "black";
+
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+
+    // 마우스를 누르면 그리기 시작
+    canvas.addEventListener("mousedown", (e) => {
+        isDrawing = true;
+        [lastX, lastY] = [e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop];
+    });
+
+    // 마우스를 뗄 때 그리기 종료
+    canvas.addEventListener("mouseup", () => isDrawing = false);
+    canvas.addEventListener("mouseout", () => isDrawing = false);
+
+    // 마우스를 움직일 때 그리기
+    canvas.addEventListener("mousemove", draw);
+
+    function draw(e) {
+        if (!isDrawing) return;
+        const [x, y] = [e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop];
+
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        [lastX, lastY] = [x, y];
+    }
+
+    // 이미지를 base64로 인코딩하여 서버로 전송하는 함수
+    function saveImage() {
+        const imageData = canvas.toDataURL("image/png");
+        fetch("/saveImage", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ imageData: imageData })
+        })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Image saved successfully");
+                } else {
+                    console.error("Failed to save image");
+                }
+            })
+            .catch(error => {
+                console.error("Error saving image:", error);
+            });
+    }
+
+    document.getElementById("saveBtn").addEventListener("click", saveImage);
+</script>
+
+
+<h1> 응ㅇ아아아엥에ㅔ에</h1>
+</body>
+</html>
