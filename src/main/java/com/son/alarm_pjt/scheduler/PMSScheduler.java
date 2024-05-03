@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -36,6 +37,7 @@ public class PMSScheduler {
                     ,"윤보민"
                     ,"배소정"
                     ,"손원철"
+                    ,"신슬기"
             ));
 
 
@@ -55,11 +57,16 @@ public class PMSScheduler {
 
 
         /**
-         * 2. 휴가자 제외 청소명단 생성.. 
+         * 2. 휴가자 제외 청소명단 생성..
          * */
 
+        List<String> cleaningMembers =  memberList.stream()
+                .filter( member -> !exceptionMemberList.contains(member))
+                .toList();
 
-
+        /**
+         * 3. 몽고데이터 확인
+         * */
 
     }
 
@@ -111,6 +118,10 @@ public class PMSScheduler {
             String text = li.getText();
             exceptionMemberList.add(text);
         }
+
+
+        // WebDriver 종료
+        driver.quit();
 
         return exceptionMemberList;
     }

@@ -59,8 +59,12 @@ public class CrawlingService {
         for (WebElement li : liElements) {
             String text = li.getText();
             textList.add(text);
+            System.out.println("text = " + text);
         }
 
+
+        // WebDriver 종료
+        driver.quit();
     }
 
 
