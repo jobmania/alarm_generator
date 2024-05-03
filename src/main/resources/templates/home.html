@@ -46,6 +46,29 @@
         [lastX, lastY] = [x, y];
     }
 
+    // 터치 시작
+    canvas.addEventListener("touchstart" , (e) => {
+        isDrawing = true;
+        [lastX, lastY] = [e.touches[0].clientX - canvas.offsetLeft, e.touches[0].clientY - canvas.offsetTop];
+    });
+
+    // 터치 끝
+    canvas.addEventListener("touchend", () => isDrawing = false);
+
+    // 터치 이동
+    canvas.addEventListener("touchmove", (e) => {
+        if (!isDrawing) return;
+        const [x, y] = [e.touches[0].clientX - canvas.offsetLeft, e.touches[0].clientY - canvas.offsetTop];
+
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        [lastX, lastY] = [x, y];
+    });
+
+
     // 이미지를 base64로 인코딩하여 서버로 전송하는 함수
     function saveImage() {
         const imageData = canvas.toDataURL("image/png");
