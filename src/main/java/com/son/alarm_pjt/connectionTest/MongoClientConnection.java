@@ -1,4 +1,4 @@
-package com.son.alarm_pjt.connection;
+package com.son.alarm_pjt.connectionTest;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;

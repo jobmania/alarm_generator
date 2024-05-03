@@ -1,17 +1,15 @@
-package com.son.alarm_pjt.service;
+package com.son.alarm_pjt.test;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.UnsupportedEncodingException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 public class CrawlingService {
     public static void main(String[] args) throws InterruptedException, UnsupportedEncodingException {
@@ -22,7 +20,7 @@ public class CrawlingService {
 
         // 'USER' 입력 필드에 값 입력
         WebElement userField = driver.findElement(By.name("USER"));
-      userField.sendKeys("wcson");
+        userField.sendKeys("wcson");
 
         // 'PSWD' 입력 필드에 값 입력
         WebElement passwordField = driver.findElement(By.name("PSWD"));

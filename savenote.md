@@ -1,19 +1,20 @@
-청소기1 hard -> boys    
-청소기2 hard -> boys  
-화장실,쓰레기, 음식물1 hard -> girls   
-화장실,쓰레기, 음식물2 hard  -> girls
+청소기1 hard    
+청소기2 hard  
 
+밀대1 hard  
+밀대2 hard  
+밀대3 hard
+
+여자화장실 hard -> only girls
+화분 hard ( 한달  * 2명 ) only boys
 
 유리창 easy   
 유리창 easy   
 제빙기 easy  
 손걸레 easy  
-공기청정기 easy  
+공기청정기 easy  (한달  한번씩 )
 
-밀대1 normal  
-밀대2 normal  
-밀대3 normal  
-화분 normal  
+쓰레기, 음식물1 normal
 커피머신,냉장고 normal  
 
 
@@ -72,10 +73,10 @@ https://wikidocs.net/91474
 
 2. 셀레니움으로 PMS 금일 휴가명단을 확인
 
-3. 휴가자 제외해서 청소명단 생성
+3. 휴가자 제외해서 청소명단 생성 (생일자 어덯게함??)
 
-4. 해당 명단 몽고DB에 저장함
+4. 몽고DB조회필요. 해당청소명단에 대해 4주전 데이터 확인하여 최대한 중복된 역할을 하지 않도록 로직을 구성하자 
 
-5. 이후 4주전 데이터 확인하여 최대한 중복된 역할을 하지 않도록 로직을 구성하자 
+5.  해당 명단 몽고DB에 저장함 
 
 6. 완료되면 팀즈로 쏴주기.
