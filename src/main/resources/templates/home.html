@@ -21,6 +21,9 @@
     let lastX = 0;
     let lastY = 0;
 
+    /**
+     * 1. 웹(PC) 환경
+     * */
     // 마우스를 누르면 그리기 시작
     canvas.addEventListener("mousedown", (e) => {
         isDrawing = true;
@@ -46,6 +49,10 @@
         [lastX, lastY] = [x, y];
     }
 
+
+    /**
+     * 2. 모바일 환경
+     * */
     // 터치 시작
     canvas.addEventListener("touchstart" , (e) => {
         isDrawing = true;
@@ -95,6 +102,6 @@
 </script>
 
 
-<h1> 응ㅇ아아아엥에ㅔ에</h1>
+<h1> 서명하고 이를 저장 ! </h1>
 </body>
 </html>
