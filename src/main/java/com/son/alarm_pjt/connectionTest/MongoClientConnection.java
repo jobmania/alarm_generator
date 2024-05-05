@@ -14,10 +14,9 @@ import org.bson.Document;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
 public class MongoClientConnection {
     public static void main(String[] args) {
-        String connectionString = "mongodb+srv://xzxz7003:ZUPlcHsd4FbDm1Ir@atlascluster.yderc0l.mongodb.net/?retryWrites=true&w=majority&appName=AtlasCluster";
+        String connectionString = "mongodb+srv://xzxz7003:ZUPlcHsd4FbDm1Ir@cleaningtask.t9u01hs.mongodb.net/?retryWrites=true&w=majority&appName=cleaningtask";
         ServerApi serverApi = ServerApi.builder()
                 .version(ServerApiVersion.V1)
                 .build();
@@ -30,11 +29,13 @@ public class MongoClientConnection {
             try {
                 // Send a ping to confirm a successful connection
                 MongoDatabase database = mongoClient.getDatabase("itnj"); //
-                MongoCollection<Document> collection = database.getCollection("member"); // 컬렉션 이름 "member"로 유지
+                MongoCollection<Document> collection = database.getCollection("cleaning"); // 컬렉션 이름 "member"로 유지
 
                 // Create a document to insert
-                Document document = new Document("name", "준식");
-
+                Document document = new Document();
+                document.append("name", "채민규");
+                document.append("task","청소기");
+                document.append("date", "2024-05-03");
                 collection.insertOne(document);
 
                 System.out.println("Pinged your deployment. You successfully connected to MongoDB!");
