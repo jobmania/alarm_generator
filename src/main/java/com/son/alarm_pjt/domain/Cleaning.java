@@ -1,6 +1,5 @@
 package com.son.alarm_pjt.domain;
 
-import com.son.alarm_pjt.domain.Enum.Gender;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -9,16 +8,18 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Getter
 @NoArgsConstructor
-@Document(collection = "member")
+@Document(collection = "cleaning")
 @ToString
-public class Member {
+public class Cleaning {
     @Id
     private String id;
-    private String name;
-    private Gender gender;
+    private Member member;
+    private Task task;
+    private String date;
 
-    public Member(String name, Gender gender) {
-        this.name = name;
-        this.gender = gender;
+    public Cleaning(Member member, Task task, String date) {
+        this.member = member;
+        this.task = task;
+        this.date = date;
     }
 }
