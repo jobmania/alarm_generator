@@ -42,6 +42,11 @@ dependencies {
 	// 크롤링을 위한 Selinium 의존성
 	implementation 'org.seleniumhq.selenium:selenium-java'
 
+	// spring data mongodb
+	// https://mvnrepository.com/artifact/org.springframework.data/spring-data-mongodb
+	implementation group: 'org.springframework.data', name: 'spring-data-mongodb', version: '4.2.0'
+
+
 }
 
 tasks.named('test') {
