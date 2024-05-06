@@ -6,25 +6,32 @@ import com.son.alarm_pjt.domain.Enum.Level;
 import com.son.alarm_pjt.domain.Member;
 import com.son.alarm_pjt.domain.ResponseDto;
 import com.son.alarm_pjt.domain.Task;
+import com.son.alarm_pjt.domain.response.ListDto;
 import com.son.alarm_pjt.repository.CleaningRepository;
 import com.son.alarm_pjt.repository.MemberRepository;
 import com.son.alarm_pjt.repository.TaskRepository;
 import com.son.alarm_pjt.scheduler.PMSScheduler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.threads.TaskQueue;
+import org.json.JSONObject;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +40,8 @@ public class MongoService {
     private final MemberRepository memberRepository;
     private final TaskRepository taskRepository;
     private final CleaningRepository cleaningRepository;
+    private final RestTemplate restTemplate;
+    private final String TeamsURL = "https://itnj1.webhook.office.com/webhookb2/647c0a1a-3c0b-4a00-a5e0-657658024ff3@1cbb409f-7344-429e-99c2-7d5266123c71/IncomingWebhook/a67ccab2ff1b4cfc8ef9037e0fd1942a/e769085a-09d4-468e-a90d-a2154c82b5ca";
 
     @Transactional
     public boolean insertTest(){
@@ -68,6 +77,9 @@ public class MongoService {
     @Transactional
     public ResponseDto<?> getTest(){
 
+        List<Cleaning> responseList = new ArrayList<>();
+        List<ListDto> responseDtoList = new ArrayList<>();
+
         /**
          * 1.  셀레니움으로 PMS 명단 확인하기 .
          * */
@@ -82,40 +94,160 @@ public class MongoService {
 
             memberList = memberList.stream()
                     .filter(m -> !exceptionMembers.contains(m.getName()))
-                    .toList();
+                    .collect(Collectors.toList());
 
         /**
          * 3. 몽고데이터 확인 => 이전 청소 명단 ( 5주전까지 확인!)
          * */
-
+            String nowTiemString = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
             // 현재 시간에서 5주 전의 시간 계산
-            LocalDateTime fiveWeeksAgo = LocalDateTime.now().minusWeeks(5);
+            LocalDateTime fiveWeeksAgo = LocalDateTime.now().minusWeeks(4);
             // ISO 8601 형식으로 변환 => "2024-05-02"
-            String fiveWeeksAgoString = fiveWeeksAgo.format(DateTimeFormatter.ISO_LOCAL_DATE);
-            List<Cleaning> cleaningList = cleaningRepository.findAllByDateAfter(fiveWeeksAgoString);
-
+            String fourWeeksAgoString = fiveWeeksAgo.format(DateTimeFormatter.ISO_LOCAL_DATE);
 
         /**
-         * 4. 청소배정하기 ( 5주 내용은 중복되지 않도록! )
+         * 4. 청소배정하기
+         *   - 5주 내용은 중복되지 않도록!
+         *   - 화분, 공기청정기는 5주에 한번 하도록
+         *   - 청소 멤버 젠더와 맞게 배치하도록
          * */
+
+
+            /**
+             * 4-1 : 청소 배정수, 일정에 맞는 task 생성
+             * */
+            Queue<Task> taskQueue = new LinkedList<>(); // 이번주 청소 목록
             List<Task> taskList = taskRepository.findAll();
-
             for (Task task : taskList) {
-                int num = task.getAssignNum();
-                while(num!=0){
 
+                // 업무마다 배정수가 정해져있음.
+                for (int i = 0; i < task.getAssignNum(); i++) {
 
+                    if(task.getName().equals("화분") || task.getName().equals("공기청정기")){
+                        List<Cleaning> monthList = cleaningRepository.findAllByTaskNameInAndDateAfter(Arrays.asList("화분", "공기청정기"), fourWeeksAgoString);
 
-                    num--;
+                        // 1. 화분, 2. 공기청정기
+                        // 한달에 한번씩만 수행되어야 됨 .
+                        if(monthList.isEmpty()){
+                            taskQueue.add(task);
+                        }
+                    }else {
+                        taskQueue.add(task);
+                    }
                 }
             }
 
+            /**
+             * 4-2 : 인원 청소 배정 ( 중복 없이, gender에 맞게)
+             * */
+
+            // 랜덤으로 섞어 버리기
+            Collections.shuffle(memberList);
+
+
+            // 각 Task별로 배정 여부를 확인하는 변수를 초기화
+            boolean isTaskAssigned = false;
+
+            for(Task task : taskQueue){
+                isTaskAssigned = false; // Task를 처음 확인할 때마다 초기화
+                for (Member member : memberList){
+                    // 5주간 해당업무에 배정된 내역 확인
+                    Optional<Member> assignMember = cleaningRepository.findByTaskNameAndMemberNameAndDateAfter(task.getName(), member.getName(), fourWeeksAgoString);
+
+                    if(assignMember.isEmpty()){
+
+                        // 특정업무는 Gender에 갈린다.
+                        if (!task.getGender().equals(Gender.중성)) {
+                            if ( task.getGender().equals(member.getGender())){
+                                responseList.add(new Cleaning(member,task,nowTiemString));
+                                memberList.remove(member);
+                                isTaskAssigned = true; // 해당 Task에 대해 Member가 배정됨
+                                break ;
+                            }
+                        }else {
+                            responseList.add(new Cleaning(member,task,nowTiemString));
+                            memberList.remove(member);
+                            isTaskAssigned = true; // 해당 Task에 대해 Member가 배정됨
+                            break ;
+                        }
+                    }else {
+                        log.info("중복 업무 이름 {}, {}",assignMember.get().getName(),task.getName());
+                    }
+                }
+
+                // 해당 Task에 대해 Member가 배정되지 않은 경우 예외 처리
+                if (!isTaskAssigned) {
+                    sendTeamTopic(responseDtoList,nowTiemString);
+                    throw new RuntimeException("흑흑 청소할 사람이 없어요: " + task.getName());
+                }
+            }
+
+
+            /**
+             * 4-3 : 생성된 리스트 저장
+             * */
+
+            cleaningRepository.saveAll(responseList);
+
+
+            /**
+             * 4-4 : 생성된 리스트 쏴주기 => DTOList로 만들자!
+             * */
+            for (Cleaning cleaning : responseList) {
+                responseDtoList.add(new ListDto(cleaning.getMember().getName(), cleaning.getTask().getName(), cleaning.getDate()));
+            }
+
+            sendTeamTopic(responseDtoList, nowTiemString);
 
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
-        return ResponseDto.success("엄","섻");
+
+
+        return ResponseDto.success(responseDtoList,"성공");
+    }
+
+    public boolean sendTeamTopic(List<ListDto> dataList, String date){
+
+        String title = date + "일자 청소 목록입니다 : ] ";
+        String text = "";
+        if(dataList.isEmpty()){
+            text = "흑흑 청소할 사람이 없어요  : [";
+        }else {
+
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("     일자     |     이름     |     역할     \n");
+            sb.append("--------------------------------------------------  \n");
+            sb.append(" \n");
+            for (ListDto listDto : dataList) {
+                sb.append(String.format("     %s     |     %s     |     %s     \n", date, listDto.getMemberName(), listDto.getTaskName()));
+            }
+
+            text = sb.toString();
+
+        }
+
+
+        // Request Header 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        // Request Body 설정 및 직렬화.
+        JSONObject requestBody = new JSONObject();
+
+        requestBody.put("title", title);
+        requestBody.put("text", text);
+        requestBody.put("@context", "https://schema.org/extensions");
+        requestBody.put("@type", "MessageCard");
+
+        HttpEntity<String> request = new HttpEntity<>(requestBody.toString(),headers);
+
+        // post 요청
+        String exchange = restTemplate.postForObject(TeamsURL, request, String.class);
+        log.info("알람응답값 = {} ",exchange);
+
+        return true;
     }
 
 
