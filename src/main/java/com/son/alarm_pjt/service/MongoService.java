@@ -2,7 +2,6 @@ package com.son.alarm_pjt.service;
 
 import com.son.alarm_pjt.domain.Cleaning;
 import com.son.alarm_pjt.domain.Enum.Gender;
-import com.son.alarm_pjt.domain.Enum.Level;
 import com.son.alarm_pjt.domain.Member;
 import com.son.alarm_pjt.domain.ResponseDto;
 import com.son.alarm_pjt.domain.Task;
@@ -10,10 +9,8 @@ import com.son.alarm_pjt.domain.response.ListDto;
 import com.son.alarm_pjt.repository.CleaningRepository;
 import com.son.alarm_pjt.repository.MemberRepository;
 import com.son.alarm_pjt.repository.TaskRepository;
-import com.son.alarm_pjt.scheduler.PMSScheduler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.threads.TaskQueue;
 import org.json.JSONObject;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -75,7 +72,7 @@ public class MongoService {
 
 
     @Transactional
-    public ResponseDto<?> getTest(){
+    public ResponseDto<?> insertCleaningData(){
 
         List<Cleaning> responseList = new ArrayList<>();
         List<ListDto> responseDtoList = new ArrayList<>();
