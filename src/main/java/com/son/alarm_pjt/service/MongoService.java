@@ -82,7 +82,6 @@ public class MongoService {
          * */
         try {
             List<String> exceptionMembers = getExceptionMembers();
-
             List<Member> memberList = memberRepository.findAll();
 
         /**
@@ -94,18 +93,18 @@ public class MongoService {
                     .collect(Collectors.toList());
 
         /**
-         * 3. 몽고데이터 확인 => 이전 청소 명단 ( 5주전까지 확인!)
+         * 3. 몽고데이터 확인 => 이전 청소 명단 ( 4주전까지 확인!)
          * */
             String nowTiemString = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
-            // 현재 시간에서 5주 전의 시간 계산
+            // 현재 시간에서 4주 전의 시간 계산
             LocalDateTime fiveWeeksAgo = LocalDateTime.now().minusWeeks(4);
             // ISO 8601 형식으로 변환 => "2024-05-02"
             String fourWeeksAgoString = fiveWeeksAgo.format(DateTimeFormatter.ISO_LOCAL_DATE);
 
         /**
          * 4. 청소배정하기
-         *   - 5주 내용은 중복되지 않도록!
-         *   - 화분, 공기청정기는 5주에 한번 하도록
+         *   - 4주 내용은 중복되지 않도록!
+         *   - 화분, 공기청정기는 4주에 한번 하도록
          *   - 청소 멤버 젠더와 맞게 배치하도록
          * */
 
@@ -138,7 +137,7 @@ public class MongoService {
              * 4-2 : 인원 청소 배정 ( 중복 없이, gender에 맞게)
              * */
 
-            // 랜덤으로 섞어 버리기
+            // 랜덤으로 섞어 버리기  --> 이후 만약 5주간 청소배정할당량을 비교해서 덜했다면 지정.
             Collections.shuffle(memberList);
 
 
@@ -148,7 +147,7 @@ public class MongoService {
             for(Task task : taskQueue){
                 isTaskAssigned = false; // Task를 처음 확인할 때마다 초기화
                 for (Member member : memberList){
-                    // 5주간 해당업무에 배정된 내역 확인
+                    // 5주간 해당업무에 배정된 내역 확인 -> 어려움 조건만 중복이 안되도록. .
                     Optional<Member> assignMember = cleaningRepository.findByTaskNameAndMemberNameAndDateAfter(task.getName(), member.getName(), fourWeeksAgoString);
 
                     if(assignMember.isEmpty()){
@@ -175,7 +174,7 @@ public class MongoService {
                 // 해당 Task에 대해 Member가 배정되지 않은 경우 예외 처리
                 if (!isTaskAssigned) {
                     sendTeamTopic(responseDtoList,nowTiemString);
-                    throw new RuntimeException("흑흑 청소할 사람이 없어요: " + task.getName());
+                    throw new RuntimeException("흑흑 청소할 사람이 없어요 : [ , \n 자리정돈 및 쓰레기만 비웁시다. " + task.getName());
                 }
             }
 
