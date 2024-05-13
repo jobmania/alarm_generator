@@ -30,7 +30,6 @@ public class TestController {
 
 //    @PostMapping("/member")
 //    public boolean insertMember(@Valid @RequestBody ){
-//
 //        return true;
 //    }
 
