@@ -13,7 +13,7 @@ public class PMSScheduler {
     private final MongoService mongoService;
 
 
-    @Scheduled(cron = "0 30 14 ? * THU")
+    @Scheduled(cron = "0 09 05 ? * THU")
     public void createCleanPlan(){
         mongoService.insertCleaningData();
     }

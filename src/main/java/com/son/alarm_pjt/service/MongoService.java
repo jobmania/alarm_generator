@@ -2,6 +2,7 @@ package com.son.alarm_pjt.service;
 
 import com.son.alarm_pjt.domain.Cleaning;
 import com.son.alarm_pjt.domain.Enum.Gender;
+import com.son.alarm_pjt.domain.Enum.Level;
 import com.son.alarm_pjt.domain.Member;
 import com.son.alarm_pjt.domain.ResponseDto;
 import com.son.alarm_pjt.domain.Task;
@@ -45,25 +46,26 @@ public class MongoService {
         try {
             // 05-02 데이터 수기로 넣기;
 
-            cleaningRepository.save(new Cleaning(memberRepository.findByName("정민찬"), taskRepository.findByName("청소기"), "2024-05-02"));
-            cleaningRepository.save(new Cleaning(memberRepository.findByName("채민규"), taskRepository.findByName("청소기"), "2024-05-02"));
-            cleaningRepository.save(new Cleaning(memberRepository.findByName("최진휘"), taskRepository.findByName("유리창"), "2024-05-02"));
-            cleaningRepository.save(new Cleaning(memberRepository.findByName("김예인"), taskRepository.findByName("유리창"), "2024-05-02"));
+//            cleaningRepository.save(new Cleaning(memberRepository.findByName("정민찬"), taskRepository.findByName("청소기"), "2024-05-02"));
+//            cleaningRepository.save(new Cleaning(memberRepository.findByName("채민규"), taskRepository.findByName("청소기"), "2024-05-02"));
+//            cleaningRepository.save(new Cleaning(memberRepository.findByName("최진휘"), taskRepository.findByName("유리창"), "2024-05-02"));
+//            cleaningRepository.save(new Cleaning(memberRepository.findByName("김예인"), taskRepository.findByName("유리창"), "2024-05-02"));
+//
+//
+//            cleaningRepository.save(new Cleaning(memberRepository.findByName("손원철"), taskRepository.findByName("제빙기"), "2024-05-02"));
+//            cleaningRepository.save(new Cleaning(memberRepository.findByName("윤지연"), taskRepository.findByName("손걸레"), "2024-05-02"));
+//            cleaningRepository.save(new Cleaning(memberRepository.findByName("김규민"), taskRepository.findByName("공기청정기"), "2024-05-02"));
+//            cleaningRepository.save(new Cleaning(memberRepository.findByName("최현순"), taskRepository.findByName("화분"), "2024-05-02"));
+//            cleaningRepository.save(new Cleaning(memberRepository.findByName("배소정"), taskRepository.findByName("여자화장실"), "2024-05-02"));
+//            cleaningRepository.save(new Cleaning(memberRepository.findByName("이승연"), taskRepository.findByName("여자화장실"), "2024-05-02"));
+//            cleaningRepository.save(new Cleaning(memberRepository.findByName("윤보민"), taskRepository.findByName("밀대"), "2024-05-02"));
+//            cleaningRepository.save(new Cleaning(memberRepository.findByName("정근준"), taskRepository.findByName("밀대"), "2024-05-02"));
+//            cleaningRepository.save(new Cleaning(memberRepository.findByName("김진영"), taskRepository.findByName("밀대"), "2024-05-02"));
+//            cleaningRepository.save(new Cleaning(memberRepository.findByName("김진규"), taskRepository.findByName("커피머신,냉장고"), "2024-05-02"));
 
+//            taskRepository.save(new Task("에어컨필터", Gender.중성, Level.어려움, 2));
 
-            cleaningRepository.save(new Cleaning(memberRepository.findByName("손원철"), taskRepository.findByName("제빙기"), "2024-05-02"));
-            cleaningRepository.save(new Cleaning(memberRepository.findByName("윤지연"), taskRepository.findByName("손걸레"), "2024-05-02"));
-            cleaningRepository.save(new Cleaning(memberRepository.findByName("김규민"), taskRepository.findByName("공기청정기"), "2024-05-02"));
-            cleaningRepository.save(new Cleaning(memberRepository.findByName("최현순"), taskRepository.findByName("화분"), "2024-05-02"));
-            cleaningRepository.save(new Cleaning(memberRepository.findByName("배소정"), taskRepository.findByName("여자화장실"), "2024-05-02"));
-            cleaningRepository.save(new Cleaning(memberRepository.findByName("이승연"), taskRepository.findByName("여자화장실"), "2024-05-02"));
-            cleaningRepository.save(new Cleaning(memberRepository.findByName("윤보민"), taskRepository.findByName("밀대"), "2024-05-02"));
-            cleaningRepository.save(new Cleaning(memberRepository.findByName("정근준"), taskRepository.findByName("밀대"), "2024-05-02"));
-            cleaningRepository.save(new Cleaning(memberRepository.findByName("김진영"), taskRepository.findByName("밀대"), "2024-05-02"));
-            cleaningRepository.save(new Cleaning(memberRepository.findByName("김진규"), taskRepository.findByName("커피머신,냉장고"), "2024-05-02"));
-
-
-
+//            memberRepository.save(new Member("남원진", Gender.남성));
         }catch (RuntimeException e){
             return false;
         }
@@ -119,8 +121,8 @@ public class MongoService {
                 // 업무마다 배정수가 정해져있음.
                 for (int i = 0; i < task.getAssignNum(); i++) {
 
-                    if(task.getName().equals("화분") || task.getName().equals("공기청정기")){
-                        List<Cleaning> monthList = cleaningRepository.findAllByTaskNameInAndDateAfter(Arrays.asList("화분", "공기청정기"), fourWeeksAgoString);
+                    if(task.getName().equals("화분") || task.getName().equals("공기청정기") || task.getName().equals("에어컨필터")){
+                        List<Cleaning> monthList = cleaningRepository.findAllByTaskNameInAndDateAfter(Arrays.asList("화분", "공기청정기","에어컨필터"), fourWeeksAgoString);
 
                         // 1. 화분, 2. 공기청정기
                         // 한달에 한번씩만 수행되어야 됨 .
