@@ -121,15 +121,23 @@ public class MongoService {
                 // 업무마다 배정수가 정해져있음.
                 for (int i = 0; i < task.getAssignNum(); i++) {
 
-                    if(task.getName().equals("화분") || task.getName().equals("공기청정기") || task.getName().equals("에어컨필터")){
-                        List<Cleaning> monthList = cleaningRepository.findAllByTaskNameInAndDateAfter(Arrays.asList("화분", "공기청정기","에어컨필터"), fourWeeksAgoString);
+                    if(task.getName().equals("화분") || task.getName().equals("공기청정기")) {
+                        List<Cleaning> monthList = cleaningRepository.findAllByTaskNameInAndDateAfter(Arrays.asList("화분", "공기청정기"), fourWeeksAgoString);
 
                         // 1. 화분, 2. 공기청정기
                         // 한달에 한번씩만 수행되어야 됨 .
-                        if(monthList.isEmpty()){
+                        if (monthList.isEmpty()) {
                             taskQueue.add(task);
                         }
-                    }else {
+                    } else if ( task.getName().equals("에어컨필터") ) {
+                        // 3  에어컨 필터
+                        List<Cleaning> monthList2 = cleaningRepository.findAllByTaskNameInAndDateAfter(Arrays.asList("에어컨필터"), fourWeeksAgoString);
+
+                        if (monthList2.isEmpty()) {
+                            taskQueue.add(task);
+                        }
+
+                    } else {
                         taskQueue.add(task);
                     }
                 }
