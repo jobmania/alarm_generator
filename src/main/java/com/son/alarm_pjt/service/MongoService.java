@@ -80,21 +80,28 @@ public class MongoService {
         List<Cleaning> responseList = new ArrayList<>();
         List<ListDto> responseDtoList = new ArrayList<>();
 
-        /**
-         * 1.  셀레니움으로 PMS 명단 확인하기 .
-         * ++ 가장 적게 인원
+        /**  1.멤버 조회하기.
+         *     1) 셀레니움으로 PMS 연차자 명단 확인하기 .
+         *     2) 청소참여 인원 리스트 DB에서 조회
          * */
         try {
             List<String> exceptionMembers = getExceptionMembers();
             List<Member> memberAllList = memberRepository.findAll();
 
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(new Date());
-            calendar.add(Calendar.WEEK_OF_YEAR, -4);
-            Date fourWeeksAgo = calendar.getTime();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            String formattedDate = sdf.format(fourWeeksAgo);
-            List<Cleaning> pastCleaningList = cleaningRepository.findAllByDateAfter(formattedDate);
+            String nowTiemString = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+            // 현재 시간에서 4주 전의 시간 계산
+            LocalDateTime fiveWeeksAgo = LocalDateTime.now().minusWeeks(4);
+            // ISO 8601 형식으로 변환 => "2024-05-02"
+            String fourWeeksAgoString = fiveWeeksAgo.format(DateTimeFormatter.ISO_LOCAL_DATE);
+
+            // 4주전 청소작업리스트 출력.
+            List<Cleaning> pastCleaningList = cleaningRepository.findAllByDateAfter(fourWeeksAgoString);
+
+            /**
+             * 2. 인원 제외 및 정렬
+             *    1) 연차 인원 제외
+             *    2) 청소 횟수 덜한 인원 우선 배치.
+             * */
 
             // 각 멤버별 포함된 횟수 계산
             Map<Member, Long> memberCounts = pastCleaningList.stream()
@@ -114,57 +121,38 @@ public class MongoService {
                     .collect(Collectors.toList()));
             resultMembers.addAll(sortedMembers);
 
-            /**
-         * 2. 휴가자 제외 청소명단 생성.. +
-         * */
-
+            // 연차인원 제외하기
             List<Member> memberList = resultMembers.stream()
                     .filter(m -> !exceptionMembers.contains(m.getName()))
                     .collect(Collectors.toList());
 
-        /**
-         * 3. 몽고데이터 확인 => 이전 청소 명단 ( 4주전까지 확인!)
-         * */
-            String nowTiemString = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
-            // 현재 시간에서 4주 전의 시간 계산
-            LocalDateTime fiveWeeksAgo = LocalDateTime.now().minusWeeks(4);
-            // ISO 8601 형식으로 변환 => "2024-05-02"
-            String fourWeeksAgoString = fiveWeeksAgo.format(DateTimeFormatter.ISO_LOCAL_DATE);
-
-        /**
-         * 4. 청소배정하기
-         *   - 4주 내용은 중복되지 않도록!
-         *   - 화분, 공기청정기는 4주에 한번 하도록
-         *   - 청소 멤버 젠더와 맞게 배치하도록
-         * */
-
-
             /**
-             * 4-1 : 청소 배정수, 일정에 맞는 task 생성
+             * 3. 청소 목록 생성하기
+             *   - 한달에 한번하는 청소 목록 : 화분, 공기청정기, 에어컨필터
+             *   - 청소 배정 갯수만큼 생성되도록.
              * */
-            List<Task> taskPerList = new LinkedList<>(); // 이번주 청소 목록
+
+            List<Task> taskPerList = new LinkedList<>();
             List<Task> taskList = taskRepository.findAll();
             for (Task task : taskList) {
 
                 // 업무마다 배정수가 정해져있음.
                 for (int i = 0; i < task.getAssignNum(); i++) {
 
+                    // 1. 화분, 2. 공기청정기
                     if(task.getName().equals("화분") || task.getName().equals("공기청정기")) {
                         List<Cleaning> monthList = cleaningRepository.findAllByTaskNameInAndDateAfter(Arrays.asList("화분", "공기청정기"), fourWeeksAgoString);
-
-                        // 1. 화분, 2. 공기청정기
-                        // 한달에 한번씩만 수행되어야 됨 .
                         if (monthList.isEmpty()) {
                             taskPerList.add(task);
                         }
-                    } else if ( task.getName().equals("에어컨필터") ) {
-                        // 3  에어컨 필터
-                        List<Cleaning> monthList2 = cleaningRepository.findAllByTaskNameInAndDateAfter(Arrays.asList("에어컨필터"), fourWeeksAgoString);
 
+                    // 3.  에어컨 필터
+                    } else if ( task.getName().equals("에어컨필터") ) {
+                        List<Cleaning> monthList2 = cleaningRepository.findAllByTaskNameInAndDateAfter(Arrays.asList("에어컨필터"), fourWeeksAgoString);
                         if (monthList2.isEmpty()) {
                             taskPerList.add(task);
                         }
-
+                  // 나머지는 매주 청소.
                     } else {
                         taskPerList.add(task);
                     }
@@ -172,7 +160,10 @@ public class MongoService {
             }
 
             /**
-             * 4-2 : 인원 청소 배정 ( 중복 없이, gender에 맞게)
+             * 4 : 인원 청소 배정
+             *  - 중복 없이
+             *  - gender에 맞게
+             *  - 청소 미참여 횟수 순으로 정렬.
              * */
 
             // 랜덤으로 청소업무 섞어 버리기
@@ -185,10 +176,12 @@ public class MongoService {
                 taskQueue.offer(task); // 큐에 요소 추가
             }
 
+            // 배정할 Task보다 참여할 인원이 적다면 예외케이스 발생.
             if(taskQueue.size() > memberList.size() ){
-                sendTeamTopic(responseDtoList,nowTiemString);
+//                sendTeamTopic(responseDtoList,nowTiemString);
                 throw new RuntimeException("흑흑 청소할 사람이 없어요 : [ , \n 자리정돈 및 쓰레기만 비웁시다. " );
             }
+
 
             while (!taskQueue.isEmpty()){
                 Task task = taskQueue.poll();
@@ -221,23 +214,24 @@ public class MongoService {
 
 
             /**
-             * 4-3 : 생성된 리스트 저장
+             * 5. 생성된 리스트 db에 저장.
              * */
 
-            cleaningRepository.saveAll(responseList);
+//            cleaningRepository.saveAll(responseList);
 
 
             /**
-             * 4-4 : 생성된 리스트 쏴주기 => DTOList로 만들자!
+             * 6 : 생성된 리스트  Teams로 쏴주기
              * */
             for (Cleaning cleaning : responseList) {
                 responseDtoList.add(new ListDto(cleaning.getMember().getName(), cleaning.getTask().getName(), cleaning.getDate()));
             }
-            sendTeamTopic(responseDtoList, nowTiemString);
+//            sendTeamTopic(responseDtoList, nowTiemString);
 
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+
 
 
         responseDtoList = responseDtoList.stream()
