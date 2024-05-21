@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -81,16 +82,43 @@ public class MongoService {
 
         /**
          * 1.  셀레니움으로 PMS 명단 확인하기 .
+         * ++ 가장 적게 인원
          * */
         try {
             List<String> exceptionMembers = getExceptionMembers();
-            List<Member> memberList = memberRepository.findAll();
+            List<Member> memberAllList = memberRepository.findAll();
 
-        /**
-         * 2. 휴가자 제외 청소명단 생성..
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(new Date());
+            calendar.add(Calendar.WEEK_OF_YEAR, -4);
+            Date fourWeeksAgo = calendar.getTime();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            String formattedDate = sdf.format(fourWeeksAgo);
+            List<Cleaning> pastCleaningList = cleaningRepository.findAllByDateAfter(formattedDate);
+
+            // 각 멤버별 포함된 횟수 계산
+            Map<Member, Long> memberCounts = pastCleaningList.stream()
+                    .map(Cleaning::getMember)
+                    .collect(Collectors.groupingBy(m -> m, Collectors.counting()));
+
+            // 포함된 횟수가 적은 순으로 정렬
+            List<Member> sortedMembers = memberCounts.entrySet().stream()
+                    .sorted(Comparator.comparingLong(Map.Entry::getValue))
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList());
+
+            // 없는 멤버를 멤버 리스트의 맨 앞에 추가
+            List<Member> resultMembers = new ArrayList<>();
+            resultMembers.addAll(memberAllList.stream()
+                    .filter(member -> !sortedMembers.contains(member))
+                    .collect(Collectors.toList()));
+            resultMembers.addAll(sortedMembers);
+
+            /**
+         * 2. 휴가자 제외 청소명단 생성.. +
          * */
 
-            memberList = memberList.stream()
+            List<Member> memberList = resultMembers.stream()
                     .filter(m -> !exceptionMembers.contains(m.getName()))
                     .collect(Collectors.toList());
 
@@ -114,7 +142,7 @@ public class MongoService {
             /**
              * 4-1 : 청소 배정수, 일정에 맞는 task 생성
              * */
-            Queue<Task> taskQueue = new LinkedList<>(); // 이번주 청소 목록
+            List<Task> taskPerList = new LinkedList<>(); // 이번주 청소 목록
             List<Task> taskList = taskRepository.findAll();
             for (Task task : taskList) {
 
@@ -127,18 +155,18 @@ public class MongoService {
                         // 1. 화분, 2. 공기청정기
                         // 한달에 한번씩만 수행되어야 됨 .
                         if (monthList.isEmpty()) {
-                            taskQueue.add(task);
+                            taskPerList.add(task);
                         }
                     } else if ( task.getName().equals("에어컨필터") ) {
                         // 3  에어컨 필터
                         List<Cleaning> monthList2 = cleaningRepository.findAllByTaskNameInAndDateAfter(Arrays.asList("에어컨필터"), fourWeeksAgoString);
 
                         if (monthList2.isEmpty()) {
-                            taskQueue.add(task);
+                            taskPerList.add(task);
                         }
 
                     } else {
-                        taskQueue.add(task);
+                        taskPerList.add(task);
                     }
                 }
             }
@@ -147,33 +175,36 @@ public class MongoService {
              * 4-2 : 인원 청소 배정 ( 중복 없이, gender에 맞게)
              * */
 
-            // 랜덤으로 섞어 버리기  --> 이후 만약 5주간 청소배정할당량을 비교해서 덜했다면 지정.
-            Collections.shuffle(memberList);
+            // 랜덤으로 청소업무 섞어 버리기
+            Collections.shuffle(taskPerList);
 
+            Queue<Task> taskQueue = new LinkedList<>();
 
-            // 각 Task별로 배정 여부를 확인하는 변수를 초기화
-            boolean isTaskAssigned = false;
+            // 리스트의 모든 요소를 큐에 추가
+            for (Task task : taskPerList) {
+                taskQueue.offer(task); // 큐에 요소 추가
+            }
 
-            for(Task task : taskQueue){
-                isTaskAssigned = false; // Task를 처음 확인할 때마다 초기화
+            while (!taskQueue.isEmpty()){
+                Task task = taskQueue.poll();
+
                 for (Member member : memberList){
-                    // 5주간 해당업무에 배정된 내역 확인 -> 어려움 조건만 중복이 안되도록. .
+
+                    // 5주간 해당업무에 배정된 내역 확인
                     Optional<Member> assignMember = cleaningRepository.findByTaskNameAndMemberNameAndDateAfter(task.getName(), member.getName(), fourWeeksAgoString);
 
-                    if(assignMember.isEmpty()){
 
+                    if(assignMember.isEmpty()){
                         // 특정업무는 Gender에 갈린다.
                         if (!task.getGender().equals(Gender.중성)) {
                             if ( task.getGender().equals(member.getGender())){
                                 responseList.add(new Cleaning(member,task,nowTiemString));
                                 memberList.remove(member);
-                                isTaskAssigned = true; // 해당 Task에 대해 Member가 배정됨
                                 break ;
                             }
                         }else {
                             responseList.add(new Cleaning(member,task,nowTiemString));
                             memberList.remove(member);
-                            isTaskAssigned = true; // 해당 Task에 대해 Member가 배정됨
                             break ;
                         }
                     }else {
@@ -181,11 +212,6 @@ public class MongoService {
                     }
                 }
 
-                // 해당 Task에 대해 Member가 배정되지 않은 경우 예외 처리
-                if (!isTaskAssigned) {
-                    sendTeamTopic(responseDtoList,nowTiemString);
-                    throw new RuntimeException("흑흑 청소할 사람이 없어요 : [ , \n 자리정돈 및 쓰레기만 비웁시다. " + task.getName());
-                }
             }
 
 
@@ -202,12 +228,16 @@ public class MongoService {
             for (Cleaning cleaning : responseList) {
                 responseDtoList.add(new ListDto(cleaning.getMember().getName(), cleaning.getTask().getName(), cleaning.getDate()));
             }
-
             sendTeamTopic(responseDtoList, nowTiemString);
 
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+
+
+        responseDtoList = responseDtoList.stream()
+                .sorted(Comparator.comparing(ListDto::getTaskName))
+                .collect(Collectors.toList());
 
 
 
