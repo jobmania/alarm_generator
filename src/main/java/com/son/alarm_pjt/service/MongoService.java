@@ -185,6 +185,11 @@ public class MongoService {
                 taskQueue.offer(task); // 큐에 요소 추가
             }
 
+            if(taskQueue.size() > memberList.size() ){
+                sendTeamTopic(responseDtoList,nowTiemString);
+                throw new RuntimeException("흑흑 청소할 사람이 없어요 : [ , \n 자리정돈 및 쓰레기만 비웁시다. " );
+            }
+
             while (!taskQueue.isEmpty()){
                 Task task = taskQueue.poll();
 
@@ -238,8 +243,6 @@ public class MongoService {
         responseDtoList = responseDtoList.stream()
                 .sorted(Comparator.comparing(ListDto::getTaskName))
                 .collect(Collectors.toList());
-
-
 
         return ResponseDto.success(responseDtoList,"성공");
     }
