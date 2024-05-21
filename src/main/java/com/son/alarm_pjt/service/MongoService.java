@@ -185,6 +185,7 @@ public class MongoService {
 
             while (!taskQueue.isEmpty()){
                 Task task = taskQueue.poll();
+                boolean isAssigned = false;
 
                 for (Member member : memberList){
 
@@ -198,11 +199,13 @@ public class MongoService {
                             if ( task.getGender().equals(member.getGender())){
                                 responseList.add(new Cleaning(member,task,nowTiemString));
                                 memberList.remove(member);
+                                isAssigned = true;
                                 break ;
                             }
                         }else {
                             responseList.add(new Cleaning(member,task,nowTiemString));
                             memberList.remove(member);
+                            isAssigned = true;
                             break ;
                         }
                     }else {
@@ -210,6 +213,25 @@ public class MongoService {
                     }
                 }
 
+                if( !isAssigned){
+                    // 배정받지 못한 업무는 랜덤으로 배정.
+
+                    while(!isAssigned){
+                        // 랜덤 객체 생성
+                        Random random = new Random();
+                        // 리스트의 크기
+                        int listSize = memberList.size();
+                        // 랜덤 인덱스 생성
+                        int randomIndex = random.nextInt(listSize);
+                        Member member = memberList.get(randomIndex);
+
+                        if(member.getGender().equals(task.getGender())){
+                            responseList.add(new Cleaning(member,task,nowTiemString));
+                            memberList.remove(member);
+                            isAssigned = true;
+                        }
+                    }
+                }
             }
 
 
