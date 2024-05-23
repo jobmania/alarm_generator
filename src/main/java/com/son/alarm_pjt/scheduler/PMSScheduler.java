@@ -13,7 +13,8 @@ public class PMSScheduler {
     private final MongoService mongoService;
 
 
-    @Scheduled(cron = "0 09 05 ? * THU")
+    //초(0-59), 분(0-59), 시간(0-23), 일(1-31), 월(1-12), 요일(0-6) (0: 일, 1: 월, 2:화, 3:수, 4:목, 5:금, 6:토)
+    @Scheduled(cron = "0 10 9 ? * THU")
     public void createCleanPlan(){
         mongoService.insertCleaningData();
     }

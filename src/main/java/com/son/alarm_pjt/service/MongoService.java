@@ -178,7 +178,7 @@ public class MongoService {
 
             // 배정할 Task보다 참여할 인원이 적다면 예외케이스 발생.
             if(taskQueue.size() > memberList.size() ){
-//                sendTeamTopic(responseDtoList,nowTiemString);
+                sendTeamTopic(responseDtoList,nowTiemString);
                 throw new RuntimeException("흑흑 청소할 사람이 없어요 : [ , \n 자리정돈 및 쓰레기만 비웁시다. " );
             }
 
@@ -239,8 +239,7 @@ public class MongoService {
              * 5. 생성된 리스트 db에 저장.
              * */
 
-//            cleaningRepository.saveAll(responseList);
-
+            cleaningRepository.saveAll(responseList);
 
             /**
              * 6 : 생성된 리스트  Teams로 쏴주기
@@ -248,7 +247,7 @@ public class MongoService {
             for (Cleaning cleaning : responseList) {
                 responseDtoList.add(new ListDto(cleaning.getMember().getName(), cleaning.getTask().getName(), cleaning.getDate()));
             }
-//            sendTeamTopic(responseDtoList, nowTiemString);
+            sendTeamTopic(responseDtoList, nowTiemString);
 
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
