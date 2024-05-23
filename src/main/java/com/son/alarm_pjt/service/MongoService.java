@@ -47,26 +47,8 @@ public class MongoService {
         try {
             // 05-02 데이터 수기로 넣기;
 
-//            cleaningRepository.save(new Cleaning(memberRepository.findByName("정민찬"), taskRepository.findByName("청소기"), "2024-05-02"));
-//            cleaningRepository.save(new Cleaning(memberRepository.findByName("채민규"), taskRepository.findByName("청소기"), "2024-05-02"));
-//            cleaningRepository.save(new Cleaning(memberRepository.findByName("최진휘"), taskRepository.findByName("유리창"), "2024-05-02"));
-//            cleaningRepository.save(new Cleaning(memberRepository.findByName("김예인"), taskRepository.findByName("유리창"), "2024-05-02"));
-//
-//
-//            cleaningRepository.save(new Cleaning(memberRepository.findByName("손원철"), taskRepository.findByName("제빙기"), "2024-05-02"));
-//            cleaningRepository.save(new Cleaning(memberRepository.findByName("윤지연"), taskRepository.findByName("손걸레"), "2024-05-02"));
-//            cleaningRepository.save(new Cleaning(memberRepository.findByName("김규민"), taskRepository.findByName("공기청정기"), "2024-05-02"));
-//            cleaningRepository.save(new Cleaning(memberRepository.findByName("최현순"), taskRepository.findByName("화분"), "2024-05-02"));
-//            cleaningRepository.save(new Cleaning(memberRepository.findByName("배소정"), taskRepository.findByName("여자화장실"), "2024-05-02"));
-//            cleaningRepository.save(new Cleaning(memberRepository.findByName("이승연"), taskRepository.findByName("여자화장실"), "2024-05-02"));
-//            cleaningRepository.save(new Cleaning(memberRepository.findByName("윤보민"), taskRepository.findByName("밀대"), "2024-05-02"));
-//            cleaningRepository.save(new Cleaning(memberRepository.findByName("정근준"), taskRepository.findByName("밀대"), "2024-05-02"));
-//            cleaningRepository.save(new Cleaning(memberRepository.findByName("김진영"), taskRepository.findByName("밀대"), "2024-05-02"));
-//            cleaningRepository.save(new Cleaning(memberRepository.findByName("김진규"), taskRepository.findByName("커피머신,냉장고"), "2024-05-02"));
+//           cleaningRepository.deleteCleaningByDate("2024-05-23");
 
-//            taskRepository.save(new Task("에어컨필터", Gender.중성, Level.어려움, 2));
-
-//            memberRepository.save(new Member("남원진", Gender.남성));
         }catch (RuntimeException e){
             return false;
         }
@@ -88,11 +70,13 @@ public class MongoService {
             List<String> exceptionMembers = getExceptionMembers();
             List<Member> memberAllList = memberRepository.findAll();
 
-            String nowTiemString = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+            String nowTimeString = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
             // 현재 시간에서 4주 전의 시간 계산
             LocalDateTime fiveWeeksAgo = LocalDateTime.now().minusWeeks(4);
+            LocalDateTime oneQuarterAgo = LocalDateTime.now().minusWeeks(12);
             // ISO 8601 형식으로 변환 => "2024-05-02"
             String fourWeeksAgoString = fiveWeeksAgo.format(DateTimeFormatter.ISO_LOCAL_DATE);
+            String oneQuarterAgoString = oneQuarterAgo.format(DateTimeFormatter.ISO_LOCAL_DATE);
 
             // 4주전 청소작업리스트 출력.
             List<Cleaning> pastCleaningList = cleaningRepository.findAllByDateAfter(fourWeeksAgoString);
@@ -148,7 +132,7 @@ public class MongoService {
 
                     // 3.  에어컨 필터
                     } else if ( task.getName().equals("에어컨필터") ) {
-                        List<Cleaning> monthList2 = cleaningRepository.findAllByTaskNameInAndDateAfter(Arrays.asList("에어컨필터"), fourWeeksAgoString);
+                        List<Cleaning> monthList2 = cleaningRepository.findAllByTaskNameInAndDateAfter(Arrays.asList("에어컨필터"), oneQuarterAgoString);
                         if (monthList2.isEmpty()) {
                             taskPerList.add(task);
                         }
@@ -178,7 +162,7 @@ public class MongoService {
 
             // 배정할 Task보다 참여할 인원이 적다면 예외케이스 발생.
             if(taskQueue.size() > memberList.size() ){
-                sendTeamTopic(responseDtoList,nowTiemString);
+                sendTeamTopic(responseDtoList,nowTimeString);
                 throw new RuntimeException("흑흑 청소할 사람이 없어요 : [ , \n 자리정돈 및 쓰레기만 비웁시다. " );
             }
 
@@ -197,13 +181,13 @@ public class MongoService {
                         // 특정업무는 Gender에 갈린다.
                         if (!task.getGender().equals(Gender.중성)) {
                             if ( task.getGender().equals(member.getGender())){
-                                responseList.add(new Cleaning(member,task,nowTiemString));
+                                responseList.add(new Cleaning(member,task,nowTimeString));
                                 memberList.remove(member);
                                 isAssigned = true;
                                 break ;
                             }
                         }else {
-                            responseList.add(new Cleaning(member,task,nowTiemString));
+                            responseList.add(new Cleaning(member,task,nowTimeString));
                             memberList.remove(member);
                             isAssigned = true;
                             break ;
@@ -226,7 +210,7 @@ public class MongoService {
                         Member member = memberList.get(randomIndex);
 
                         if(member.getGender().equals(task.getGender())){
-                            responseList.add(new Cleaning(member,task,nowTiemString));
+                            responseList.add(new Cleaning(member,task,nowTimeString));
                             memberList.remove(member);
                             isAssigned = true;
                         }
@@ -247,17 +231,18 @@ public class MongoService {
             for (Cleaning cleaning : responseList) {
                 responseDtoList.add(new ListDto(cleaning.getMember().getName(), cleaning.getTask().getName(), cleaning.getDate()));
             }
-            sendTeamTopic(responseDtoList, nowTiemString);
+
+
+            responseDtoList = responseDtoList.stream()
+                    .sorted(Comparator.comparing(ListDto::getTaskName))
+                    .collect(Collectors.toList());
+
+            sendTeamTopic(responseDtoList, nowTimeString);
 
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
-
-
-        responseDtoList = responseDtoList.stream()
-                .sorted(Comparator.comparing(ListDto::getTaskName))
-                .collect(Collectors.toList());
 
         return ResponseDto.success(responseDtoList,"성공");
     }
