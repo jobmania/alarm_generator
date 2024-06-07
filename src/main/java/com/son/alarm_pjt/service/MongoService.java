@@ -49,6 +49,17 @@ public class MongoService {
 
 //           cleaningRepository.deleteCleaningByDate("2024-05-23");
 
+//            Optional<Member> 김예진 = memberRepository.findByName("김예진");
+//
+//            if(김예진.isPresent()){
+//                Member member = 김예진.get();
+//                member.getId();
+//            }
+
+
+
+
+
         }catch (RuntimeException e){
             return false;
         }
@@ -343,6 +354,56 @@ public class MongoService {
         driver.quit();
 
         return exceptionMemberList;
+    }
+
+    @Transactional
+    public boolean tempLogic(){
+        try {
+            // 05-02 데이터 수기로 넣기;
+
+//           cleaningRepository.deleteCleaningByDate("2024-05-23");
+
+//            Optional<Member> 김예진 = memberRepository.findByName("김예진");
+//
+//            if(김예진.isPresent()){
+//                Member member = 김예진.get();
+//                member.getId();
+//            }
+
+
+            List<String> exceptionMembers = getExceptionMembers();
+            List<Member> memberAllList = memberRepository.findAll();
+            List<Member> memberList = memberAllList.stream()
+                    .filter(m -> !exceptionMembers.contains(m.getName()))
+                    .collect(Collectors.toList());
+
+
+            Collections.shuffle(memberList);
+
+            for (Member member : memberList) {
+                if(member.getGender().equals(Gender.여성)){
+                    System.out.println("여성화장실 당첨 = "+ member.getName());
+                    memberList.remove(member);
+                    break;
+                }
+            }
+
+
+            Collections.shuffle(memberList);
+
+            for (int i = 0; i < 2; i++) {
+                System.out.println("일반쓰레기 비우기 = " + memberList.get(i).getName());
+            }
+
+
+
+
+        }catch (RuntimeException e){
+            return false;
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return true;
     }
 
 }
