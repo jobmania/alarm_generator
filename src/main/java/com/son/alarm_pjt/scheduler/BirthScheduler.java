@@ -61,9 +61,9 @@ public class BirthScheduler {
         changeBirthDay("김예인", LocalDate.of(thisYear,7,12));
         changeBirthDay("김규민", LocalDate.of(thisYear,11,10));
         changeBirthDay("김진영", LocalDate.of(thisYear,11,17));
-        changeBirthDay("채민규", LocalDate.of(thisYear,11,9));
+//        changeBirthDay("채민규", LocalDate.of(thisYear,11,9));
         changeBirthDay("윤보민", LocalDate.of(thisYear,10,16));
-        changeBirthDay("배소정", LocalDate.of(thisYear,3,2));
+//        changeBirthDay("배소정", LocalDate.of(thisYear,3,2));
         changeBirthDay("손원철", LocalDate.of(thisYear,2,11));
         changeBirthDay("김예진", LocalDate.of(thisYear,10,24));
 
@@ -87,9 +87,9 @@ public class BirthScheduler {
         realBirthMap.put("김예인", LocalDate.of(thisYear,7,12));
         realBirthMap.put("김규민", LocalDate.of(thisYear,11,10));
         realBirthMap.put("김진영", LocalDate.of(thisYear,11,17));
-        realBirthMap.put("채민규", LocalDate.of(thisYear,11,9));
+//        realBirthMap.put("채민규", LocalDate.of(thisYear,11,9));
         realBirthMap.put("윤보민", LocalDate.of(thisYear,10,16));
-        realBirthMap.put("배소정", LocalDate.of(thisYear,3,2));
+//        realBirthMap.put("배소정", LocalDate.of(thisYear,3,2));
         realBirthMap.put("손원철", LocalDate.of(thisYear,2,11));
         realBirthMap.put("김예진", LocalDate.of(thisYear, 10, 24));
 
