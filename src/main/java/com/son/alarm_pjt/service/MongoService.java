@@ -45,10 +45,16 @@ public class MongoService {
     @Transactional
     public boolean insertTest(){
         try {
-            // 05-02 데이터 수기로 넣기;
 
+            /***
+             * 특정일자 지우기 .
+             * */
+//           cleaningRepository.deleteCleaningByDate("2024-06-13");
 //           cleaningRepository.deleteCleaningByDate("2024-05-23");
 
+            /**
+             * 멤버 추가하기 ..
+             * */
 //            Optional<Member> 김예진 = memberRepository.findByName("김예진");
 //
 //            if(김예진.isPresent()){
@@ -57,7 +63,71 @@ public class MongoService {
 //            }
 
 
+            /**
+             * 추가하기
+             * */
 
+            /**
+             * 지연 - 손걸레
+             * 예진 - 밀대
+             * 예인 - 밀대
+             * 예인 - 커피머신
+             * 민찬- 청소기
+             * 진영 - 밀대
+             * 윤지 - 쓰레기비우기
+             * 민규 - 청소기
+             * */
+
+            List<Member> memberList = memberRepository.findAll();
+
+            for (Member member : memberList) {
+
+                switch (member.getName()) {
+//                    case "윤지연":
+//                        Task 손걸레 = taskRepository.findByName("손걸레");
+//                        cleaningRepository.save(new Cleaning(member, 손걸레, "2024-06-13"));
+//
+//                        break;
+//                    case "김예진":
+//                        Task 밀대 = taskRepository.findByName("밀대");
+//                        cleaningRepository.save(new Cleaning(member, 밀대, "2024-06-13"));
+//                        break;
+//
+//                    case "김예인":
+//                        Task 커피 = taskRepository.findByName("커피머신,냉장고");
+//                        cleaningRepository.save(new Cleaning(member, 커피, "2024-06-13"));
+//                        Task 밀대2 = taskRepository.findByName("밀대");
+//                        cleaningRepository.save(new Cleaning(member, 밀대2, "2024-06-13"));
+//                        break;
+//
+//                    case "정민찬":
+//                        Task 청소기 = taskRepository.findByName("청소기");
+//                        cleaningRepository.save(new Cleaning(member, 청소기, "2024-06-13"));
+//                        break;
+
+                    case "김진영":
+                        Task 에어컨필터 = taskRepository.findByName("에어컨필터");
+                        cleaningRepository.save(new Cleaning(member, 에어컨필터, "2024-06-20"));
+                        break;
+
+//                    case "조윤지":
+//                        Task 쓰레기비우기 = taskRepository.findByName("쓰레기비우기");
+//                        cleaningRepository.save(new Cleaning(member, 쓰레기비우기, "2024-06-13"));
+//                        break;
+
+                    case "김건우":
+                        Task 에어컨필터2 = taskRepository.findByName("에어컨필터");
+                        cleaningRepository.save(new Cleaning(member, 에어컨필터2, "2024-06-20"));
+                        break;
+                }
+            }
+
+
+//            List<Cleaning> allByDateAfter = cleaningRepository.findAllByDateAfter("2024-06-12");
+//            for (Cleaning cleaning : allByDateAfter) {
+//                System.out.println("cleaning.getMember().getName() = " + cleaning.getMember().getName());
+//                System.out.println("cleaning.getTask().getName() = " + cleaning.getTask().getName());
+//            }
 
 
         }catch (RuntimeException e){
@@ -80,6 +150,7 @@ public class MongoService {
         try {
             List<String> exceptionMembers = getExceptionMembers();
             List<Member> memberAllList = memberRepository.findAll();
+            log.info("전체 멤버 ={}",memberAllList);
 
             String nowTimeString = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
             // 현재 시간에서 4주 전의 시간 계산
@@ -255,7 +326,19 @@ public class MongoService {
         }
 
 
+
         return ResponseDto.success(responseDtoList,"성공");
+    }
+
+    public List<ListDto> getTasks(String date) {
+        List<ListDto> responseDtoList = new ArrayList<>();
+        List<Cleaning> allByDate = cleaningRepository.findAllByDate(date);
+
+        for (Cleaning cleaning : allByDate) {
+            responseDtoList.add(new ListDto(cleaning.getMember().getName(), cleaning.getTask().getName(), cleaning.getDate()));
+        }
+
+        return responseDtoList;
     }
 
     public boolean sendTeamTopic(List<ListDto> dataList, String date){
@@ -406,4 +489,12 @@ public class MongoService {
         return true;
     }
 
+    @Transactional
+    public void deleteMember(String name) {
+        int memberDelete = memberRepository.deleteByName(name);
+        int cleaningDelete = cleaningRepository.deleteByMemberName(name);
+
+        log.info("memberDelete ={},",memberDelete);
+        log.info("cleaningDelete ={},",cleaningDelete);
+    }
 }

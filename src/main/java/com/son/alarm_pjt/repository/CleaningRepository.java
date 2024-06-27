@@ -18,4 +18,9 @@ public interface CleaningRepository extends MongoRepository<Cleaning, String> {
     Optional<Member> findByTaskNameAndMemberNameAndDateAfter(String taskName,String meberName, String date);
 
     List<Cleaning> findAllByDateAfter(String date);
+    List<Cleaning> findAllByDate(String date);
+
+
+    void deleteCleaningByDate(String date);
+    int deleteByMemberName(String memberName);
 }
