@@ -12,6 +12,7 @@ import com.son.alarm_pjt.repository.MemberRepository;
 import com.son.alarm_pjt.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.C;
 import org.json.JSONObject;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -496,5 +497,16 @@ public class MongoService {
 
         log.info("memberDelete ={},",memberDelete);
         log.info("cleaningDelete ={},",cleaningDelete);
+    }
+
+    @Transactional
+    public Cleaning insertCleaning(String date, String memberName, String taskName ) {
+
+        Member findMember = memberRepository.findByName(memberName);
+        Task findTask = taskRepository.findByName(taskName);
+
+        Cleaning save = cleaningRepository.save(new Cleaning(findMember, findTask, date));
+
+        return save;
     }
 }

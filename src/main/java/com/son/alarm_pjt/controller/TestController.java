@@ -1,6 +1,7 @@
 package com.son.alarm_pjt.controller;
 
 
+import com.son.alarm_pjt.domain.Cleaning;
 import com.son.alarm_pjt.domain.ResponseDto;
 import com.son.alarm_pjt.domain.response.ListDto;
 import com.son.alarm_pjt.service.MongoService;
@@ -28,7 +29,7 @@ public class TestController {
         return mongoService.insertCleaningData();
     }
 
-
+/************/
 
     @GetMapping("/task")
     public ResponseDto<?> insertTask(@RequestParam(name = "date") String date){
@@ -40,5 +41,16 @@ public class TestController {
     public ResponseDto<?> deleteMember(@RequestParam(name = "name") String name){
         mongoService.deleteMember(name);
         return ResponseDto.success("삭제","완료");
+    }
+
+
+    @PostMapping("/cleaning")
+    public ResponseDto<?> insertCleaning(
+            @RequestParam(name = "date") String date,
+            @RequestParam(name = "name") String name,
+            @RequestParam(name = "task") String task
+    ){
+        Cleaning cleaning = mongoService.insertCleaning(date, name, task);
+        return ResponseDto.success(cleaning,"완료");
     }
 }

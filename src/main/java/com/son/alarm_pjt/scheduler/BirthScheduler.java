@@ -92,6 +92,7 @@ public class BirthScheduler {
 //        realBirthMap.put("배소정", LocalDate.of(thisYear,3,2));
         realBirthMap.put("손원철", LocalDate.of(thisYear,2,11));
         realBirthMap.put("김예진", LocalDate.of(thisYear, 10, 24));
+        realBirthMap.put("조원진", LocalDate.of(thisYear, 10, 27));
 
 
         log.info("바뀐생일 = {}",birthMap);
